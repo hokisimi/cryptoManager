@@ -1,0 +1,38 @@
+extends ../layout
+block content
+  article.deal_area
+
+    if user
+      ul(id='crud_nav')
+        li
+          a(href='/yield/add') 거래내역 추가
+        if trade_info
+          - rid = encodeURIComponent(trade_info['@rid'])
+          li
+            a(href='/yield/' + rid +'/edit') 수정
+          li
+            a(href='/yield/' + rid+ '/delete') 삭제
+      table.table-responsive.table.table-hover
+        tr
+          th  거래일자
+          th  거래번호
+          th  매수구분
+          th  통화코드
+          th  기축통화
+          th  수량
+          th  단가
+          th  거래금액
+          th  수수료
+        each trade_info in trade_infos
+          tr
+            td= trade_info.deal_dt
+            td= trade_info.deal_no
+            td= trade_info.deal_tp
+            td= trade_info.crnc_code
+            td= trade_info.key_crnc_code
+            td= trade_info.qry
+            td= trade_info.unit_prc
+            td= trade_info.deal_amt
+            td= trade_info.cmsn_amt
+    else
+      div 로그인 후 이용하실 수 있습니다.

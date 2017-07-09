@@ -1,0 +1,22 @@
+extends ../layout
+block content
+  article.yield_box
+    form(action='/yield/add' method='post')
+      p
+        input(type='text' name='deal_dt' placeholder='거래일자(ex:20170305)')
+      p
+        input(type='text' name='deal_tp' placeholder='1:매수/2:매도')
+      p
+        input(type='text' name='crnc_code' placeholder='통화코드(ex:BTC,ETH..)')
+      p
+        input(type='text' name='key_crnc_code' placeholder='기축통화(ex:BTC,ETH...)')
+      p
+        input(type='text' name='qry' placeholder='수량')
+      p
+        input(type='text' name='unit_prc' placeholder='단가')
+      p
+        input(type='text' name='deal_amt' placeholder='거래금액(기축통화)')
+      p
+        input(type='text' name='cmsn_amt' placeholder='거래수수료(기축통화)')
+      p
+        input(type='submit')

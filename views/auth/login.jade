@@ -1,0 +1,13 @@
+extends ../layout
+block content
+  article.login_box
+    h1 Login
+    form(action = '/auth/login', method = 'post')
+      p
+        input(type='text', name='username', placeholder='username')
+      p
+        input(type='password', name='password', placeholder='password')
+      p
+        input.btn.btn-default(type='submit', value='login')
+      p
+        =message

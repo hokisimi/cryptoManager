@@ -1,0 +1,29 @@
+{
+  "name": "crytoManager",
+  "version": "1.0.0",
+  "description": "crytoManager is program that manage to crytocurrency trade",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.17.2",
+    "connect-flash": "^0.1.1",
+    "convict": "^4.0.0",
+    "cookie-parser": "^1.4.3",
+    "express": "^4.15.3",
+    "express-mysql-session": "^1.2.1",
+    "express-session": "^1.15.3",
+    "jade": "^1.11.0",
+    "mysql": "^2.13.0",
+    "passport": "^0.3.2",
+    "passport-local": "^1.0.0",
+    "path": "^0.12.7",
+    "pbkdf2-password": "^1.2.1",
+    "request": "^2.81.0",
+    "socket.io": "^2.0.3",
+    "underscore": "^1.8.3"
+  }
+}
