@@ -3,6 +3,8 @@ block content
   article.yield_box
     form(action='/yield/add' method='post')
       p
+        input(type='text' name='exchng_id' placeholder='거래소(ex:PLNX(poloniex), BITH(bithumb), CONO(coinone), BTRX(bittrex)')
+      p
         input(type='text' name='deal_dt' placeholder='거래일자(ex:20170305)')
       p
         input(type='text' name='deal_tp' placeholder='1:매수/2:매도')

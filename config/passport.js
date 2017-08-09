@@ -83,7 +83,7 @@ module.exports = function(app){
               hasher({password:password, salt:user.salt},
                 function (err, pass, salt, hash){
                   if(hash === user.password){
-                    console.log('login sucess user',user);
+                    console.log('login success user',user);
                     done(null, user);
                   }
                   else{

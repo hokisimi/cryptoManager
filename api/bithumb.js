@@ -1,5 +1,5 @@
 module.exports = function(io){
-  var config = require('./config.js');
+  var config = require('../config/config.js');
   var request = require('request');
 
   var sise = io.of('/sise');
