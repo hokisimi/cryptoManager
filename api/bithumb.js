@@ -7,8 +7,8 @@ module.exports = function(io){
     console.log('socket connect!');
 
     clientSocket.on('recv_bithumb', function(req){
-      var xcoinAPI = new XCoinAPI(config.get(api.bithumb.connect_key), config.get(api.bithumb.secret_key));
-      xcoinAPI.xcoinApiCall('/public/ticker');
+      var xcoinAPI = new XCoinAPI(config.get('api.bithumb.connect_key'), config.get('api.bithumb.secret_key'));
+      xcoinAPI.xcoinApiCall('/public/ticker/'+req.currency);
     });
 
     clientSocket.on('disconnect', function(){

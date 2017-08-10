@@ -10,6 +10,7 @@ html
     style.
       body {padding-top: 50px;}
       .deal_area {padding: 20px;}
+      .balance_area {padding: 20px;}
       .login_box {padding: 20px;}
       .register_box {padding: 20px;}
       .yield_box {padding: 20px;}
@@ -31,7 +32,7 @@ html
             li
               a(href='#about') 입출금내역
             li
-              a(href='#contact') 잔고
+              a(href='/balance') 잔고
           ul.nav.navbar-nav.navbar-right
             if user
               li
@@ -43,26 +44,6 @@ html
                 a(href='/auth/register') Register
         // /.nav-collapse
 
-    script(type='text/javascript').
-      var timer_id;
-      var s_sise = io(':3000/sise');
-      //call_sise();
-      s_sise.on('XCoinAPIResponse', function(rsData){
-
-        if(rsData.status == '0000'){
-          document.getElementById('bit_sise').innerHTML='BTC(bithumb) : ' + rsData.data.closing_price;
-          timer_id = setInterval(call_sise, 20*1000*60);
-        }
-        else{
-          document.getElementById('bit_sise').innerHTML='BTC(bithumb) : ' +'해당서비스 임시장애중..';
-          clearInterval(timer_id);
-        }
-      });
-
-      function call_sise(){
-            s_sise.emit('recv_bithumb');
-      };
-
     block content
 
     // jQuery (necessary for Bootstrap's JavaScript plugins)
@@ -72,8 +53,3 @@ html
 
     // Latest compiled and minified JavaScript
     script(src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js', integrity='sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa', crossorigin='anonymous')
-
-    script.
-      $(function(){
-
-      });

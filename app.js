@@ -16,6 +16,10 @@ app.use('/auth', auth);
 var yield = require('./routers/yield')();
 app.use('/yield', yield);
 
+/* 잔고 라우터 */
+var balance = require('./routers/balance')();
+app.use('/balance', balance);
+
 var bithumbApi = require('./api/bithumb');
 
 bithumbApi(io);
