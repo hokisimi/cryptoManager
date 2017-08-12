@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- 생성 시간: 17-08-09 08:00
+-- 생성 시간: 17-08-11 23:06
 -- 서버 버전: 5.6.36
 -- PHP 버전: 5.6.30
 
@@ -30,6 +30,7 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `balance` (
   `exchng_id` varchar(20) NOT NULL,
+  `key_crnc_code` varchar(10) NOT NULL,
   `crnc_code` varchar(10) NOT NULL,
   `user_id` varchar(20) NOT NULL,
   `balance_amt` decimal(20,8) NOT NULL
@@ -39,8 +40,9 @@ CREATE TABLE `balance` (
 -- 테이블의 덤프 데이터 `balance`
 --
 
-INSERT INTO `balance` (`exchng_id`, `crnc_code`, `user_id`, `balance_amt`) VALUES
-('BITH', 'ETH', 'wysong', '0.70000000');
+INSERT INTO `balance` (`exchng_id`, `key_crnc_code`, `crnc_code`, `user_id`, `balance_amt`) VALUES
+('BITH', '', 'BTC', 'wysong', '1.00000000'),
+('BITH', 'KRW', 'ETH', 'wysong', '0.70000000');
 
 -- --------------------------------------------------------
 
@@ -59,8 +61,8 @@ CREATE TABLE `sessions` (
 --
 
 INSERT INTO `sessions` (`session_id`, `expires`, `data`) VALUES
-('CXAXopO76xSUKWw7FrxVkhEhehFI1RAK', 1502292022, '{\"cookie\":{\"originalMaxAge\":1800000,\"expires\":\"2017-08-09T15:08:48.274Z\",\"httpOnly\":true,\"path\":\"/\"},\"passport\":{\"user\":\"local:wysong\"}}'),
-('lFskygFZf31poo33R5RWbCWMLdht8vKe', 1502292373, '{\"cookie\":{\"originalMaxAge\":1800000,\"expires\":\"2017-08-09T15:24:55.025Z\",\"httpOnly\":true,\"path\":\"/\"},\"passport\":{\"user\":\"local:wysong\"}}');
+('3e4spQGZP8ktFQPv1ZF-t2sP9rq4WLB1', 1502379976, '{\"cookie\":{\"originalMaxAge\":3600000,\"expires\":\"2017-08-10T15:08:49.540Z\",\"httpOnly\":true,\"path\":\"/\"},\"passport\":{\"user\":\"local:wysong\"}}'),
+('VXG9BSTPDomk8v25EM6cK4gtf5w8yiXp', 1502382884, '{\"cookie\":{\"originalMaxAge\":3599999,\"expires\":\"2017-08-10T16:23:27.761Z\",\"httpOnly\":true,\"path\":\"/\"},\"passport\":{\"user\":\"local:wysong\"}}');
 
 -- --------------------------------------------------------
 
@@ -91,7 +93,8 @@ INSERT INTO `trade_info` (`deal_dt`, `deal_no`, `user_id`, `exchng_id`, `deal_tp
 ('2017-06-25', 2, 'wysong', 'PLNX', '1', 'WAVE', 'BTC', '1.00000000', '0.00000000', '1.00000000', '0.00000000'),
 ('2017-06-25', 3, 'wysong', 'PLNX', '1', 'ETH', 'BTC', '4000.21000000', '0.00000793', '1.39356500', '0.00000500'),
 ('2017-08-09', 1, 'wysong', 'BITH', '1', 'ETH', 'KRW', '1.50000000', '350000.00000000', '525000.00000000', '800.00000000'),
-('2017-08-09', 2, 'wysong', 'BITH', '2', 'ETH', 'KRW', '0.80000000', '360000.00000000', '288000.00000000', '800.00000000');
+('2017-08-09', 2, 'wysong', 'BITH', '2', 'ETH', 'KRW', '0.80000000', '360000.00000000', '288000.00000000', '800.00000000'),
+('2017-08-10', 1, 'wysong', 'BITH', '1', 'BTC', 'KRW', '1.00000000', '3860000.00000000', '3860000.00000000', '1000.00000000');
 
 -- --------------------------------------------------------
 
@@ -126,7 +129,7 @@ INSERT INTO `user` (`id`, `auth_id`, `password`, `salt`, `displayName`) VALUES
 -- 테이블의 인덱스 `balance`
 --
 ALTER TABLE `balance`
-  ADD PRIMARY KEY (`exchng_id`,`crnc_code`,`user_id`);
+  ADD PRIMARY KEY (`exchng_id`,`key_crnc_code`,`crnc_code`,`user_id`);
 
 --
 -- 테이블의 인덱스 `sessions`
