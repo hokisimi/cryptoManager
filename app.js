@@ -17,12 +17,8 @@ var yield = require('./routers/yield')();
 app.use('/yield', yield);
 
 /* 잔고 라우터 */
-var balance = require('./routers/balance')();
+var balance = require('./routers/balance')(io);
 app.use('/balance', balance);
-
-var bithumbApi = require('./api/bithumb');
-
-bithumbApi(io);
 
 /* 서버가동 */
 httpServer.listen(config.get('port'), function(){

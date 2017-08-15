@@ -12,8 +12,8 @@ block content
               td 준비중
               td 준비중
       .row
-        .col-md-4.col-sm-4.col-xs-10
-          table.table-responsive.table.table-hover
+        .col-md-6.col-sm-6.col-xs-12
+          table#tb_balances.table-responsive.table.table-hover
             tr
               th  거래소
               th  기축통화
@@ -30,23 +30,60 @@ block content
     else
       div 로그인 후 이용하실 수 있습니다.
 
-    script(type='text/javascript').
-      var timer_id;
-      var s_sise = io(':3000/sise');
-      call_sise();
-      s_sise.on('XCoinAPIResponse', function(rsData){
+block append scripts
+  script(type='text/javascript').
 
-        if(rsData.status == '0000'){
-          alert(rsData.data.closing_price);
-          //document.getElementById('bit_sise').innerHTML='BTC(bithumb) : ' + rsData.data.closing_price;
-          //timer_id = setInterval(call_sise, 20*1000*60);
-        }
-        else{
-          //document.getElementById('bit_sise').innerHTML='BTC(bithumb) : ' +'해당서비스 임시장애중..';
-          //clearInterval(timer_id);
-        }
+    var bal_ticker;
+    var req_lists;
+    var startPoint = '/balance/ticker';
+
+    $(function() {
+
+      bal_ticker = io(startPoint);
+
+      req_lists = get_req_list();
+
+      call_sise();
+
+      bal_ticker.on('XCoinAPIResponse', function(rsData){
+
+        set_close_price(rsData.res_lists);
+      });
+    });
+
+    function call_sise(){
+
+          if(req_lists)
+          {
+            bal_ticker.emit(startPoint, {'req_lists':req_lists});
+          }
+
+    };
+
+    function get_req_list(){
+
+      var req_lists = new Array();
+
+      $('#tb_balances').find("tr:has('td')").each(function () {
+
+        var req_info = {};
+
+         req_info['exchng_id']     = $(this).find('td').eq(0).text()
+         req_info['key_crnc_code'] = $(this).find('td').eq(1).text()
+         req_info['crnc_code']     = $(this).find('td').eq(2).text()
+
+         req_lists.push(req_info);
       });
 
-      function call_sise(){
-            s_sise.emit('recv_bithumb', {currency:'ETH'});
-      };
+      return req_lists;
+    };
+
+    function set_close_price(res_lists){
+
+      $('#tb_balances').find("tr:has('td')").each(function (i, item) {
+
+      $(this).find('td').eq(4).html(res_lists[i].res_data.data.closing_price);
+
+      });
+
+    };

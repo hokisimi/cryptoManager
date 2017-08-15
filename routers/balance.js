@@ -1,4 +1,14 @@
-module.exports = function(){
+module.exports = function(io){
+
+  var coinAPI = require('../api/coinapi')(io);
+
+  /* 빗썸 api */
+  var bithumb_api = new coinAPI('bithumb');
+
+  console.log('빗섬 api 객체생성:' + bithumb_api.exchng_id);
+  bithumb_api.setStartPoint('/balance/ticker');
+  bithumb_api.setEndPoint('/public/ticker');
+  bithumb_api.on();
 
   var route = require('express').Router();
   var conn = require('../config/db')();

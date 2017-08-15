@@ -1,20 +1,5 @@
 module.exports = function(io){
-  var config = require('../config/config.js');
   var request = require('request');
-
-  var sise = io.of('/sise');
-  sise.on('connect', function(clientSocket){
-    console.log('socket connect!');
-
-    clientSocket.on('recv_bithumb', function(req){
-      var xcoinAPI = new XCoinAPI(config.get('api.bithumb.connect_key'), config.get('api.bithumb.secret_key'));
-      xcoinAPI.xcoinApiCall('/public/ticker/'+req.currency);
-    });
-
-    clientSocket.on('disconnect', function(){
-      console.log('socket disconnect!');
-    });
-  });
 
   function XCoinAPI(api_key, api_secret){
   	this.apiUrl = 'https://api.bithumb.com';
@@ -22,7 +7,7 @@ module.exports = function(io){
   	this.api_secret = api_secret;
   }
 
-  XCoinAPI.prototype.xcoinApiCall = function(endPoint, params) {
+  XCoinAPI.prototype.xcoinApiCall = function(endPoint, params, id, callback) {
   	var rgParams = {
   		'endPoint' : endPoint
   	};
@@ -36,10 +21,10 @@ module.exports = function(io){
   	var api_host = this.apiUrl + endPoint;
   	var httpHeaders = this._getHttpHeaders(endPoint, rgParams, this.api_key, this.api_secret);
 
-  	var rgResult = this.request(api_host, 'POST', rgParams, httpHeaders);
+  	var rgResult = this.request(api_host, 'POST', rgParams, httpHeaders, id, callback);
   }
 
-  XCoinAPI.prototype.request = function(strHost, strMethod, rgParams, httpHeaders) {
+  XCoinAPI.prototype.request = function(strHost, strMethod, rgParams, httpHeaders, id, callback) {
   	var rgHeaders = {};
   	if(httpHeaders) {
   		rgHeaders = httpHeaders;
@@ -53,12 +38,14 @@ module.exports = function(io){
   	function(error, response, rgResult) {
   		if(error) {
   			console.log(error);
-  			sise.emit('XCoinAPIResponse', {status:'9999'});
   		}
+
       var rgResultDecode = JSON.parse(rgResult);
 
-      console.log(rgResultDecode);
-      sise.emit('XCoinAPIResponse', rgResultDecode);
+      if(typeof callback === 'function') {
+          console.log('콜백호출');
+          callback(id, rgResultDecode);
+      }
   	});
   }
 
@@ -207,4 +194,5 @@ module.exports = function(io){
   this._hasher;a=b.finalize(a);b.reset();return b.finalize(this._oKey.clone().concat(a))}})})();
 
 
+  return XCoinAPI;
 }
