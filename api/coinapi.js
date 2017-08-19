@@ -1,85 +1,62 @@
 module.exports = function(io){
 
   var config = require('../config/config.js');
-  var startPoint;
-  var endPoint;
 
   function CoinAPI(exchng_id){
 
   	this.exchng_id = exchng_id;
   }
 
-  CoinAPI.prototype.setStartPoint = function(in_startPoint) {
+  CoinAPI.prototype.on = function(channel){
 
-    startPoint = in_startPoint;
-  }
+    var _channel = io.of(channel);
 
-  CoinAPI.prototype.setEndPoint = function(in_endPoint) {
+    /* Bithumb ticker socket channel */
+    _channel.on('connect', function(clientSocket){
 
-    endPoint = in_endPoint;
-  }
+      console.log('socket connected');
 
-  CoinAPI.prototype.on = function(params) {
+      clientSocket.on('getTicker', function(req){
 
-    if(this.exchng_id == 'bithumb'){
+        req_lists = req.req_lists;
+        request_tot_cnt = req.req_lists.length;
+        request_proc_cnt = 0;
 
-      var request_tot_cnt = 0;
-      var request_proc_cnt = 0;
-      var req_lists;
+        var Bithumb_api = require('./bithumb.js')(io);
 
-      console.log('on메서드 호출');
+        var bithumb_api = new Bithumb_api('','');
 
-      var bal_ticker = io.of(startPoint);
+        for(var i = 0; i < req_lists.length; i++){
 
-      /* Bithumb ticker socket channel */
-      bal_ticker.on('connect', function(clientSocket){
+          console.log(req_lists[i].crnc_code);
 
-        clientSocket.on(startPoint, function(req){
+          bithumb_api.xcoinApiCall('/public/ticker' + '/' + req_lists[i].crnc_code, {}, req_lists[i].crnc_code, function(id, res_data){
 
-          req_lists = req.req_lists;
-          request_tot_cnt = req.req_lists.length;
-          request_proc_cnt = 0;
+            console.log('콜백실행');
 
-          var Bithumb_api = require('./bithumb.js')(io);
+            for(var j = 0; j < req_lists.length; j++){
+              if(req_lists[j].crnc_code == id)
+              {
+                  req_lists[j]['res_data'] = res_data;
+              }
+            }
 
-          var bithumb_api = new Bithumb_api(config.get('api.bithumb.connect_key'), config.get('api.bithumb.secret_key'));
+            request_proc_cnt += 1;
 
-          for(var i = 0; i < req_lists.length; i++){
-
-              console.log(req_lists[i].crnc_code);
-
-              bithumb_api.xcoinApiCall(endPoint + '/' + req_lists[i].crnc_code, {}, req_lists[i].crnc_code, function(id, res_data){
-
-                console.log('콜백실행');
-
-                for(var j = 0; j < req_lists.length; j++){
-                  if(req_lists[j].crnc_code == id)
-                  {
-                      req_lists[j]['res_data'] = res_data;
-                  }
-                }
-
-                request_proc_cnt += 1;
-
-                if(request_tot_cnt == request_proc_cnt)
-                {
-                    console.log(req_lists);
-                    bal_ticker.emit('XCoinAPIResponse', {'res_lists':req_lists});
-                }
-              });
-          };
-        });
-
-        clientSocket.on('disconnect', function(){
-          console.log('socket disconnect!');
-        });
+            if(request_tot_cnt == request_proc_cnt)
+            {
+                console.log(req_lists);
+                _channel.emit('getTicker', {'res_lists':req_lists});
+            }
+          });
+        };
       });
 
-    }
-    else if(this.exchng_id == 'coinone'){
-
-    }
-  };
+      clientSocket.on('disconnect', function(){
+        console.log('socket disconnect!');
+      });
+    });
+  }
 
   return CoinAPI;
 }

@@ -1,14 +1,10 @@
 module.exports = function(io){
 
-  var coinAPI = require('../api/coinapi')(io);
+  var coinAPI = require('../api/coinApi')(io);
 
   /* 빗썸 api */
   var bithumb_api = new coinAPI('bithumb');
-
-  console.log('빗섬 api 객체생성:' + bithumb_api.exchng_id);
-  bithumb_api.setStartPoint('/balance/ticker');
-  bithumb_api.setEndPoint('/public/ticker');
-  bithumb_api.on();
+  bithumb_api.on('/ticker');  /* ticker채널 소켓 대기 */
 
   var route = require('express').Router();
   var conn = require('../config/db')();

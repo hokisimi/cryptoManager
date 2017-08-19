@@ -6,9 +6,13 @@ block content
         .col-md-3.col-sm-4.col-xs-10
           table.table-responsive.table
             tr
-              th 예상수익금(원화)
-              th 비트수익
+              th 총수익
+              th 비트총수익
+              th 비트시세차익
+              th 비트순이익
             tr
+              td 준비중
+              td 준비중
               td 준비중
               td 준비중
       .row
@@ -35,29 +39,27 @@ block append scripts
 
     var bal_ticker;
     var req_lists;
-    var startPoint = '/balance/ticker';
 
     $(function() {
 
-      bal_ticker = io(startPoint);
+      bal_ticker = io('/ticker');
 
       req_lists = get_req_list();
 
-      call_sise();
+      getTicker();
 
-      bal_ticker.on('XCoinAPIResponse', function(rsData){
+      bal_ticker.on('getTicker', function(rsData){
 
         set_close_price(rsData.res_lists);
       });
     });
 
-    function call_sise(){
+    function getTicker(){
 
-          if(req_lists)
-          {
-            bal_ticker.emit(startPoint, {'req_lists':req_lists});
-          }
-
+        if(req_lists)
+        {
+          bal_ticker.emit('getTicker', {'req_lists':req_lists});
+        }
     };
 
     function get_req_list(){
@@ -82,8 +84,8 @@ block append scripts
 
       $('#tb_balances').find("tr:has('td')").each(function (i, item) {
 
-      $(this).find('td').eq(4).html(res_lists[i].res_data.data.closing_price);
-
+        var close_price = res_lists[i].res_data.data.closing_price;
+        $(this).find('td').eq(4).html(Number(close_price).toLocaleString('en'));
       });
 
     };
