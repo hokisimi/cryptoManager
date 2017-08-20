@@ -1,6 +1,6 @@
 module.exports = function(io){
 
-  var config = require('../config/config.js');
+  var timer_id;
 
   function CoinAPI(exchng_id){
 
@@ -14,47 +14,25 @@ module.exports = function(io){
     /* Bithumb ticker socket channel */
     _channel.on('connect', function(clientSocket){
 
-      console.log('socket connected');
+      clientSocket.on('services', function(req){
 
-      clientSocket.on('getTicker', function(req){
-
-        req_lists = req.req_lists;
-        request_tot_cnt = req.req_lists.length;
-        request_proc_cnt = 0;
-
-        var Bithumb_api = require('./bithumb.js')(io);
-
-        var bithumb_api = new Bithumb_api('','');
-
-        for(var i = 0; i < req_lists.length; i++){
-
-          console.log(req_lists[i].crnc_code);
-
-          bithumb_api.xcoinApiCall('/public/ticker' + '/' + req_lists[i].crnc_code, {}, req_lists[i].crnc_code, function(id, res_data){
-
-            console.log('콜백실행');
-
-            for(var j = 0; j < req_lists.length; j++){
-              if(req_lists[j].crnc_code == id)
-              {
-                  req_lists[j]['res_data'] = res_data;
-              }
-            }
-
-            request_proc_cnt += 1;
-
-            if(request_tot_cnt == request_proc_cnt)
-            {
-                console.log(req_lists);
-                _channel.emit('getTicker', {'res_lists':req_lists});
-            }
-          });
-        };
+        emitClient(req, _channel);
+        timer_id = setInterval(emitClient, 10000, req, _channel);
       });
 
       clientSocket.on('disconnect', function(){
+        clearInterval(timer_id);
         console.log('socket disconnect!');
       });
+    });
+  }
+
+  function emitClient(req, channel){
+
+    var svc_id = req.svc_id;
+    require('../services/' + svc_id + '.js')(req, function(req_lists){
+
+      channel.emit('services', {'res_lists':req_lists});
     });
   }
 

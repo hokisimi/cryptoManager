@@ -23,5 +23,5 @@ app.use('/balance', balance);
 /* 서버가동 */
 httpServer.listen(config.get('port'), function(){
 
-  console.log('Connected' + config.get('port') + 'port');
+  console.log('Connected ' + config.get('port') + 'port');
 });

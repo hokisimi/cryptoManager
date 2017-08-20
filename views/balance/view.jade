@@ -4,6 +4,15 @@ block content
     if user
       .row
         .col-md-3.col-sm-4.col-xs-10
+          table#tb_top2ticker.table-responsive.table
+            tr
+              th 비트코인
+              th 이더리움
+            tr
+              td 준비중
+              td 준비중
+        .row
+        .col-md-3.col-sm-4.col-xs-10
           table.table-responsive.table
             tr
               th 총수익
@@ -37,32 +46,69 @@ block content
 block append scripts
   script(type='text/javascript').
 
-    var bal_ticker;
-    var req_lists;
-
     $(function() {
 
-      bal_ticker = io('/ticker');
-
-      req_lists = get_req_list();
-
-      getTicker();
-
-      bal_ticker.on('getTicker', function(rsData){
-
-        set_close_price(rsData.res_lists);
-      });
+      //top2currency_getTicker();
+      balance_getTicker();
     });
 
-    function getTicker(){
+    function balance_getTicker(){
+
+      var user_id = !{JSON.stringify(user.id)};
+      var channel = io('/' + user_id + '/balance_ticker');
+      var req_lists = get_balance_req_list();
+      getTicker(channel, req_lists);
+
+      channel.on('services', function(rsData){
+        set_close_price(rsData.res_lists);
+      });
+    }
+
+    function set_close_price(res_lists){
+
+      $('#tb_balances').find("tr:has('td')").each(function (i, item) {
+
+        var close_price = res_lists[i].res_data.data.closing_price;
+        $(this).find('td').eq(4).html(Number(close_price).toLocaleString('en'));
+      });
+    };
+
+    function top2currency_getTicker(){
+
+      var channel = io('/top2currency_ticker');
+      var req_lists;
+      getTicker(channel, req_lists);
+
+      channel.on('services', function(rsData){
+
+        calc_bit_profit();
+      });
+    }
+
+    function calc_bit_profit(){
+
+      $('#tb_balances').find("tr:has('td')").each(function (i, item) {
+
+        if($(this).find('td').eq(1).text() == 'BTC'){
+          var balance = Number($(this).find('td').eq(3).text());
+          var close_price = Number($(this).find('td').eq(4).text());
+
+          (balance*close_price)
+        }
+
+        $(this).find('td').eq(4).html(Number(close_price).toLocaleString('en'));
+      });
+    }
+
+    function getTicker(channel, req_lists){
 
         if(req_lists)
         {
-          bal_ticker.emit('getTicker', {'req_lists':req_lists});
+          channel.emit('services', {'svc_id':'getTicker', 'req_lists':req_lists});
         }
     };
 
-    function get_req_list(){
+    function get_balance_req_list(){
 
       var req_lists = new Array();
 
@@ -78,14 +124,4 @@ block append scripts
       });
 
       return req_lists;
-    };
-
-    function set_close_price(res_lists){
-
-      $('#tb_balances').find("tr:has('td')").each(function (i, item) {
-
-        var close_price = res_lists[i].res_data.data.closing_price;
-        $(this).find('td').eq(4).html(Number(close_price).toLocaleString('en'));
-      });
-
     };

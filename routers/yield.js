@@ -152,7 +152,7 @@ module.exports = function(){
                                 crnc_code,
                                 user_id,
                                 balance_amt)
-                               VALUES(?, ?, ?, ?)`;
+                               VALUES(?, ?, ?, ?, ?)`;
 
                     conn.query(sql, [in_exchng_id, in_key_crnc_code, in_crnc_code, in_id, in_qry], function(err, rows, fields){
 
