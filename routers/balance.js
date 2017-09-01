@@ -2,18 +2,16 @@ module.exports = function(io){
 
   var route = require('express').Router();
   var conn = require('../config/db')();
+  var Defferd = require('../defferd/Defferd')(io);
+
+  var defferd = new Defferd();
+  defferd.on('/top2currency_ticker');
+  defferd.on('/balance_ticker');
 
   route.get('', function(req, res){
 
     if(req.user)
     {
-      var coinAPI = require('../api/coinApi')(io);
-
-      /* 빗썸 api */
-      var bithumb_api = new coinAPI('bithumb');
-      bithumb_api.on('/' + req.user.id + '/balance_ticker');  /* ticker채널 소켓 대기 */
-      // bithumb_api.on('/top2currency_ticker');  /* ticker채널 소켓 대기 */
-
       var sql = `SELECT exchng_id
                       , key_crnc_code
                       , crnc_code

@@ -12,13 +12,13 @@ block content
               td 준비중
               td 준비중
         .row
-        .col-md-3.col-sm-4.col-xs-10
+        .col-md-4.col-sm-4.col-xs-10
           table.table-responsive.table
             tr
               th 총수익
-              th 비트총수익
-              th 비트시세차익
-              th 비트순이익
+              th 수익(B)
+              th 시세차익(B)
+              th 증감(B)
             tr
               td 준비중
               td 준비중
@@ -48,23 +48,22 @@ block append scripts
 
     $(function() {
 
-      //top2currency_getTicker();
+      top2currency_getTicker();
       balance_getTicker();
     });
 
     function balance_getTicker(){
 
-      var user_id = !{JSON.stringify(user.id)};
-      var channel = io('/' + user_id + '/balance_ticker');
+      var channel = io('/balance_ticker');
       var req_lists = get_balance_req_list();
       getTicker(channel, req_lists);
 
       channel.on('services', function(rsData){
-        set_close_price(rsData.res_lists);
+        set_balance_close_price(rsData.res_lists);
       });
     }
 
-    function set_close_price(res_lists){
+    function set_balance_close_price(res_lists){
 
       $('#tb_balances').find("tr:has('td')").each(function (i, item) {
 
@@ -76,14 +75,26 @@ block append scripts
     function top2currency_getTicker(){
 
       var channel = io('/top2currency_ticker');
-      var req_lists;
+      var req_lists = [{'exchng_id':'BITH', 'key_crnc_code':'KRW', 'crnc_code':'BTC'},
+                       {'exchng_id':'BITH', 'key_crnc_code':'KRW', 'crnc_code':'ETH'}]
+
       getTicker(channel, req_lists);
 
       channel.on('services', function(rsData){
-
-        calc_bit_profit();
+        set_top2currency_close_price(rsData.res_lists);
       });
     }
+
+    function set_top2currency_close_price(res_lists){
+
+      $('#tb_top2ticker').find("tr:has('td')").each(function (i, item) {
+
+        for(var j = 0, length = res_lists.length; j < length; j++){
+          var close_price = res_lists[j].res_data.data.closing_price;
+          $(this).find('td').eq(j).html(Number(close_price).toLocaleString('en'));
+        }
+      });
+    };
 
     function calc_bit_profit(){
 
@@ -104,7 +115,7 @@ block append scripts
 
         if(req_lists)
         {
-          channel.emit('services', {'svc_id':'getTicker', 'req_lists':req_lists});
+          channel.emit('services', {'svc_id':'getTicker', 'auto_resend':1, 'interval':10*1000, 'req_lists':req_lists});
         }
     };
 

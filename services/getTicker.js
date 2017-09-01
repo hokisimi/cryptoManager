@@ -1,23 +1,29 @@
-module.exports = function(req, callback){
 
-  var Bithumb_api = require('../api/bithumb.js');
+function GetTicker(){
+
+}
+
+GetTicker.prototype.call = function(req, callback){
+
+  var CryptoCompareApi = require('../api/cryptocompare.js');
 
   var req_lists = req.req_lists;
   var request_tot_cnt = req.req_lists.length;
   var request_proc_cnt = 0;
 
-  var bithumb_api = new Bithumb_api('','');
+  var cryptoCompareApi = new CryptoCompareApi();
 
-  for(var i = 0; i < req_lists.length; i++){
+  for(var i = 0; i < request_tot_cnt; i++){
 
-    console.log(req_lists[i].crnc_code);
+    console.log(req_lists[i].exchng_id, req_lists[i].key_crnc_code, req_lists[i].crnc_code);
 
-    bithumb_api.xcoinApiCall('/public/ticker' + '/' + req_lists[i].crnc_code, {}, req_lists[i].crnc_code, function(id, res_data){
+    cryptoCompareApi.ApiCall('/data/price/', req_lists[i], function(id, res_data){
 
-      console.log('콜백실행');
+      for(var j = 0; j < request_tot_cnt; j++){
 
-      for(var j = 0; j < req_lists.length; j++){
-        if(req_lists[j].crnc_code == id)
+        var private_key = req_lists[i].exchng_id + req_lists[i].key_crnc_code + req_lists[i].crnc_code;
+
+        if(private_key == id)
         {
             req_lists[j]['res_data'] = res_data;
         }
@@ -33,3 +39,5 @@ module.exports = function(req, callback){
     });
   };
 }
+
+module.exports = GetTicker;
