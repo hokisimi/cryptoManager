@@ -1,10 +1,10 @@
 module.exports = function(io){
 
-  var route = require('express').Router();
-  var conn = require('../config/db')();
-  var Defferd = require('../defferd/Defferd')
+  const route = require('express').Router();
+  const conn = require('../config/db')();
+  const Defferd = require('../defferd/Defferd')
 
-  var defferd = new Defferd(io);
+  const defferd = new Defferd(io);
   defferd.on('/top2currency_ticker');
   defferd.on('/balance_ticker');
 
@@ -12,16 +12,16 @@ module.exports = function(io){
 
     if(req.user)
     {
-      var sql = `SELECT exchng_id
-                      , key_crnc_code
-                      , crnc_code
-                      , balance_amt
-                   FROM balance
-                  WHERE user_id = ?`;
+      const sql = `SELECT exchng_id
+                        , key_crnc_code
+                        , crnc_code
+                        , balance_amt
+                     FROM balance
+                    WHERE user_id = ?`;
 
       conn.query(sql, [req.user.id], function(err, rows, fields){
 
-        var db_balance_infos = rows;
+        const db_balance_infos = rows;
 
         if(err){
           console.log(err);

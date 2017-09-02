@@ -1,4 +1,4 @@
-var request = require('request');
+const request = require('request');
 
 function CryptoCompare(){
 	this.apiUrl = 'https://min-api.cryptocompare.com';
@@ -8,7 +8,7 @@ function CryptoCompare(){
 // fsym=BTC&tsyms=KRW&e=Coinone
 
 CryptoCompare.prototype.ApiCall = function(endPoint, params, id, callback) {
-	var rgParams = {};
+	let rgParams = {};
 
 	if(params) {
 		for(o in params){
@@ -16,8 +16,8 @@ CryptoCompare.prototype.ApiCall = function(endPoint, params, id, callback) {
 		}
 	}
 
-	var api_host = this.apiUrl + endPoint;
-	var rgResult = this.request('GET', api_host, rgParams, id, callback);
+	const api_host = this.apiUrl + endPoint;
+	const rgResult = this.request('GET', api_host, rgParams, id, callback);
 }
 
 CryptoCompare.prototype.request = function(strMethod, strHost, rgParams, id, callback) {
@@ -33,7 +33,7 @@ CryptoCompare.prototype.request = function(strMethod, strHost, rgParams, id, cal
 			console.log(error);
 		}
 
-    var rgResultDecode = JSON.parse(rgResult);
+    const rgResultDecode = JSON.parse(rgResult);
 
     if(typeof callback === 'function') {
         console.log('콜백호출');

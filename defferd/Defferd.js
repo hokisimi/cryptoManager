@@ -4,8 +4,8 @@ function Defferd(io){
 
 Defferd.prototype.on = function(channel){
 
-  var timer_id;
-  var _channel = this.io.of(channel);
+  let timer_id;
+  const _channel = this.io.of(channel);
 
   /* ticker socket channel */
   _channel.on('connect', function(clientSocket){
@@ -35,9 +35,9 @@ Defferd.prototype.on = function(channel){
 
 function emitClient(clientSocket, req){
 
-  var GetTicker = require('../services/' + req.svc_id+ '.js');
+  const GetTicker = require('../services/' + req.svc_id+ '.js');
 
-  var getTicker = new GetTicker();
+  const getTicker = new GetTicker();
 
   getTicker.call(req, function(req_lists){
 

@@ -1,7 +1,7 @@
 module.exports = function(){
 
-  var route = require('express').Router();
-  var conn = require('../config/db')();
+  const route = require('express').Router();
+  const conn = require('../config/db')();
 
   route.get('', function(req, res){
 
