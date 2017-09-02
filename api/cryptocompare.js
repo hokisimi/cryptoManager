@@ -4,10 +4,11 @@ function CryptoCompare(){
 	this.apiUrl = 'https://min-api.cryptocompare.com';
 }
 
+
+// fsym=BTC&tsyms=KRW&e=Coinone
+
 CryptoCompare.prototype.ApiCall = function(endPoint, params, id, callback) {
-	var rgParams = {
-		'endPoint' : endPoint
-	};
+	var rgParams = {};
 
 	if(params) {
 		for(o in params){
@@ -21,6 +22,7 @@ CryptoCompare.prototype.ApiCall = function(endPoint, params, id, callback) {
 
 CryptoCompare.prototype.request = function(strMethod, strHost, rgParams, id, callback) {
 
+	console.log("request call");
 	request({
 		method : strMethod,
 		uri : strHost,
@@ -35,28 +37,10 @@ CryptoCompare.prototype.request = function(strMethod, strHost, rgParams, id, cal
 
     if(typeof callback === 'function') {
         console.log('콜백호출');
+				console.log(rgResultDecode);
         callback(id, rgResultDecode);
     }
 	});
 }
 
-function http_build_query(obj) {
-	var output_string = []
-	Object.keys(obj).forEach(function (val) {
-		var key = val;
-		key = encodeURIComponent(key.replace(/[!'()*]/g, escape));
-
-		if (typeof obj[val] === 'object') {
-			var query = build_query(obj[val], null, key)
-			output_string.push(query)
-		}
-		else {
-			var value = encodeURIComponent(obj[val].replace(/[!'()*]/g, escape));
-			output_string.push(key + '=' + value)
-		}
-	})
-
-	return output_string.join('&');
-}
-
-module.exports = XCoinAPI;
+module.exports = CryptoCompare;

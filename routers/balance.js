@@ -2,9 +2,9 @@ module.exports = function(io){
 
   var route = require('express').Router();
   var conn = require('../config/db')();
-  var Defferd = require('../defferd/Defferd')(io);
+  var Defferd = require('../defferd/Defferd')
 
-  var defferd = new Defferd();
+  var defferd = new Defferd(io);
   defferd.on('/top2currency_ticker');
   defferd.on('/balance_ticker');
 
@@ -29,7 +29,7 @@ module.exports = function(io){
         }
         else{
           console.log('유저정보 : ', req.user);
-          console.log('거래내역정보 : ', db_balance_infos);
+          console.log('잔고정보 : ', db_balance_infos);
           res.render('balance/view', {balance_infos:db_balance_infos, user:req.user});
         }
 

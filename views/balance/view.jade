@@ -67,16 +67,22 @@ block append scripts
 
       $('#tb_balances').find("tr:has('td')").each(function (i, item) {
 
-        var close_price = res_lists[i].res_data.data.closing_price;
-        $(this).find('td').eq(4).html(Number(close_price).toLocaleString('en'));
+        var close_price = res_lists[i].close_price;
+
+        if(res_lists[i].key_crnc_code == 'KRW'){
+          $(this).find('td').eq(4).html(Number(close_price).toLocaleString('en'));
+        }
+        else{
+          $(this).find('td').eq(4).html(close_price);
+        }
       });
     };
 
     function top2currency_getTicker(){
 
       var channel = io('/top2currency_ticker');
-      var req_lists = [{'exchng_id':'BITH', 'key_crnc_code':'KRW', 'crnc_code':'BTC'},
-                       {'exchng_id':'BITH', 'key_crnc_code':'KRW', 'crnc_code':'ETH'}]
+      var req_lists = [{'exchng_id':'Coinone', 'key_crnc_code':'KRW', 'crnc_code':'BTC'},
+                       {'exchng_id':'Coinone', 'key_crnc_code':'KRW', 'crnc_code':'ETH'}]
 
       getTicker(channel, req_lists);
 
@@ -90,8 +96,15 @@ block append scripts
       $('#tb_top2ticker').find("tr:has('td')").each(function (i, item) {
 
         for(var j = 0, length = res_lists.length; j < length; j++){
-          var close_price = res_lists[j].res_data.data.closing_price;
-          $(this).find('td').eq(j).html(Number(close_price).toLocaleString('en'));
+          var close_price = res_lists[j].close_price;
+
+          if(res_lists[j].key_crnc_code == 'KRW'){
+            $(this).find('td').eq(j).html(Number(close_price).toLocaleString('en'));
+          }
+          else{
+            $(this).find('td').eq(j).html(close_price);
+          }
+
         }
       });
     };
