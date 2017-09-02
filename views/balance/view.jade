@@ -33,12 +33,14 @@ block content
               th  통화코드
               th  잔고
               th  현재가(기축통화)
+              th  평가금액(기축통화)
             each balance_info in balance_infos
               tr
                 td= balance_info.exchng_id
                 td= balance_info.key_crnc_code
                 td= balance_info.crnc_code
                 td= balance_info.balance_amt
+                td  준비중
                 td  준비중
     else
       div 로그인 후 이용하실 수 있습니다.
@@ -69,13 +71,17 @@ block append scripts
       $('#tb_balances').find("tr:has('td')").each(function (i, item) {
 
         let close_price = res_lists[i].close_price;
+        let eval_amt = close_price*$(this).find('td').eq(3).html();
 
         if(res_lists[i].key_crnc_code == 'KRW'){
           $(this).find('td').eq(4).html(Number(close_price).toLocaleString('en'));
+          $(this).find('td').eq(5).html(Number(eval_amt.toFixed(0)).toLocaleString('en'));
         }
         else{
           $(this).find('td').eq(4).html(close_price);
+          $(this).find('td').eq(5).html(eval_amt.toFixed(8));
         }
+        
       });
     };
 
