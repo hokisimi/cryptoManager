@@ -39,9 +39,9 @@ function emitClient(clientSocket, req){
 
   const getTicker = new GetTicker();
 
-  getTicker.call(req, function(req_lists){
+  getTicker.call(req, function(req_list){
 
-      clientSocket.emit('services', {'res_lists':req_lists});
+      clientSocket.emit('services', {'res_list':req_list});
   });
 };
 

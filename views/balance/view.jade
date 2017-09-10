@@ -13,7 +13,7 @@ block content
               td 준비중
         .row
         .col-md-4.col-sm-4.col-xs-10
-          table.table-responsive.table
+          table#tb_profit.table-responsive.table
             tr
               th 총수익
               th 수익(B)
@@ -47,33 +47,37 @@ block content
 
 block append scripts
   script(src='/socket.io/socket.io.js')
+  script(src='/balance/Ticker.js')
   script(type='text/javascript').
 
     $(function() {
 
-      top2currency_getTicker();
-      balance_getTicker();
+      var top2currency = new Ticker(io('/top2currency_ticker'));
+      
+      let req_list = [{'exchng_id':'Coinone', 'key_crnc_code':'KRW', 'crnc_code':'BTC'},
+                      {'exchng_id':'Coinone', 'key_crnc_code':'KRW', 'crnc_code':'ETH'}]
+                      
+      top2currency.setReqList(req_list);
+      top2currency.getTicker(function(res_list){
+        set_top2currency_close_price(res_list);
+      });
+
+      var balance = new Ticker(io('/balance_ticker'));
+      balance.setReqList(get_balance_req_list());
+      balance.getTicker(function(res_list){
+        set_balance_close_price(res_list);
+        get_profit();
+      });
     });
 
-    function balance_getTicker(){
-
-      const channel = io('/balance_ticker');
-      const req_lists = get_balance_req_list();
-      getTicker(channel, req_lists);
-
-      channel.on('services', function(rsData){
-        set_balance_close_price(rsData.res_lists);
-      });
-    }
-
-    function set_balance_close_price(res_lists){
+    function set_balance_close_price(res_list){
 
       $('#tb_balances').find("tr:has('td')").each(function (i, item) {
 
-        let close_price = res_lists[i].close_price;
+        let close_price = res_list[i].close_price;
         let eval_amt = close_price*$(this).find('td').eq(3).html();
 
-        if(res_lists[i].key_crnc_code == 'KRW'){
+        if(res_list[i].key_crnc_code == 'KRW'){
           $(this).find('td').eq(4).html(Number(close_price).toLocaleString('en'));
           $(this).find('td').eq(5).html(Number(eval_amt.toFixed(0)).toLocaleString('en'));
         }
@@ -81,56 +85,29 @@ block append scripts
           $(this).find('td').eq(4).html(close_price);
           $(this).find('td').eq(5).html(eval_amt.toFixed(8));
         }
-        
       });
     };
 
-    function top2currency_getTicker(){
-
-      let channel = io('/top2currency_ticker');
-      let req_lists = [{'exchng_id':'Coinone', 'key_crnc_code':'KRW', 'crnc_code':'BTC'},
-                       {'exchng_id':'Coinone', 'key_crnc_code':'KRW', 'crnc_code':'ETH'}]
-
-      getTicker(channel, req_lists);
-
-      channel.on('services', function(rsData){
-        set_top2currency_close_price(rsData.res_lists);
-      });
-    }
-
-    function set_top2currency_close_price(res_lists){
+    function set_top2currency_close_price(res_list){
 
       $('#tb_top2ticker').find("tr:has('td')").each(function (i, item) {
 
-        for(var j = 0, length = res_lists.length; j < length; j++){
-          var close_price = res_lists[j].close_price;
+        for(var j = 0, length = res_list.length; j < length; j++){
+          var close_price = res_list[j].close_price;
 
-          if(res_lists[j].key_crnc_code == 'KRW'){
+          if(res_list[j].key_crnc_code == 'KRW'){
             $(this).find('td').eq(j).html(Number(close_price).toLocaleString('en'));
           }
           else{
             $(this).find('td').eq(j).html(close_price);
           }
-
         }
       });
     };
 
-    function calc_bit_profit(){
-
-    }
-
-    function getTicker(channel, req_lists){
-
-        if(req_lists)
-        {
-          channel.emit('services', {'svc_id':'getTicker', 'auto_resend':1, 'interval':10*1000, 'req_lists':req_lists});
-        }
-    };
-
     function get_balance_req_list(){
 
-      const req_lists = new Array();
+      const req_list = new Array();
 
       $('#tb_balances').find("tr:has('td')").each(function () {
 
@@ -140,8 +117,66 @@ block append scripts
          req_info['key_crnc_code'] = $(this).find('td').eq(1).text()
          req_info['crnc_code']     = $(this).find('td').eq(2).text()
 
-         req_lists.push(req_info);
+         req_list.push(req_info);
       });
 
-      return req_lists;
+      return req_list;
+    };
+    
+    function get_profit(){
+      
+      /* Promise Job#1 ajax request */
+      const _queryProfit = function(param){
+  
+        return new Promise(function(resolve, reject){
+  
+          $.ajax({
+                url:'/balance/profit',
+                type: 'POST',
+          })
+          .done(function(data, textStatus, jqXHR) {
+            resolve(data);
+          })
+          .fail(function(jqXHR, textStatus, errorThrown){
+            reject(textStatus);
+          })
+          .always(function(data, textStatus, jqXHR){
+            
+          });
+        });
+      };
+      
+      _queryProfit().then(function(data){
+        
+        let bit_profit = 0;
+        let eval_amt = 0;
+        
+        $('#tb_balances').find("tr:has('td')").each(function (i, item) {
+  
+          let key_crnc_code = $(this).find('td').eq(1).html();
+
+          if(key_crnc_code == 'BTC'){
+            
+            let  qry = $(this).find('td').eq(3).html();
+            let  unit_prc = $(this).find('td').eq(4).html();
+
+            eval_amt = eval_amt + unit_prc*qry;
+          }
+        });
+        
+        bit_profit = (eval_amt + data.sumSellAmt) - data.sumBuyAmt;
+        
+        $('#tb_profit').find("tr:eq(1)").find('td').eq(3).html(bit_profit.toFixed(4));
+        
+        if(bit_profit < 0)
+        {
+          $('#tb_profit').find("tr:eq(1)").find('td').eq(3).css("color", "red");
+        }
+        else{
+          $('#tb_profit').find("tr:eq(1)").find('td').eq(3).css("color", "blue");
+        }
+      })
+      .catch(function(err){
+          res.status(500).send('문제가 발생했습니다. 빠른 시일안에 해결하겠습니다.');
+      });
     };

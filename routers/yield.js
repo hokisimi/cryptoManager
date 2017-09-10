@@ -156,7 +156,7 @@ module.exports = function(){
       });
     };
 
-    var _insertOrUdateBalanceInfo = function(balance_info){
+    const _insertOrUdateBalanceInfo = function(balance_info){
 
       return new Promise(function(resolve, reject){
 

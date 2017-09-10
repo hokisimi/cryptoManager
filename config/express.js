@@ -16,6 +16,8 @@ module.exports = function(){
   app.set('views', './views');
 
   app.use(express.static('public'));
+  app.use(express.static('js'));
+
   app.use(bodyParser.urlencoded({ extended: false}));
   app.use(session(
     {
