@@ -3,7 +3,7 @@ block content
   article.balance_area
     if user
       .row
-        .col-md-3.col-sm-4.col-xs-10
+        .col-md-4.col-sm-4.col-10
           table#tb_top2ticker.table-responsive.table
             tr
               th 비트코인
@@ -11,8 +11,8 @@ block content
             tr
               td 준비중
               td 준비중
-        .row
-        .col-md-4.col-sm-4.col-xs-10
+      .row
+        .col-md-6.col-sm-6.col-10
           table#tb_profit.table-responsive.table
             tr
               th 총수익
@@ -24,24 +24,66 @@ block content
               td 준비중
               td 준비중
               td 준비중
-      .row
-        .col-md-6.col-sm-6.col-xs-12
-          table#tb_balances.table-responsive.table.table-hover
-            tr
-              th  거래소
-              th  기축통화
-              th  통화코드
-              th  잔고
-              th  현재가(기축통화)
-              th  평가금액(기축통화)
-            each balance_info in balance_infos
-              tr
-                td= balance_info.exchng_id
-                td= balance_info.key_crnc_code
-                td= balance_info.crnc_code
-                td= balance_info.balance_amt
-                td  준비중
-                td  준비중
+              
+      .row.header(style='margin-top:1em')
+        .col-md-10.col-sm-12.col-10
+          .card.w-100
+            .card-body
+              .row
+                .col-xs.col-sm-2-4.col-md-2-4
+                  b Currency
+                .col-xs.col-sm-2-4.col-md-2-4
+                  b Exchange
+                .col-xs.col-sm-2-4.col-md-2-4
+                  b Balance
+                .col-xs.col-sm-2-4.col-md-2-4
+                  b Last Price
+                .col-xs.col-sm-2-4.col-md-2-4
+                  b Eval Price
+      
+      div#tb_balances             
+        each balance_info in balance_infos                     
+          .row(style='margin-top : 1em')
+            .col-md-10.col-sm-12.col-10
+              .card.w-100
+                .card-body
+                  .row
+                    .col-xs.col-sm-2-4.col-md-2-4.currency
+                      b.crnc_code= balance_info.crnc_code
+                    .col-xs.col-sm-2-4.col-md-2-4.exchange(style='color:grey;')
+                      .key_crnc_code(style='float:left')= balance_info.key_crnc_code
+                      div(style='float:left')  &nbsp|&nbsp 
+                      .exchng_id(style='float:left')= balance_info.exchng_id
+                    .col-xs.col-sm-2-4.col-md-2-4.balance
+                      .balance_amt(style='float:left')= balance_info.balance_amt
+                      div(style='float:left')  &nbsp
+                      .crnc_code_nm(style='float:left')= balance_info.crnc_code.toLowerCase()
+                    .col-xs.col-sm-2-4.col-md-2-4.last_price
+                      .last_amt(style='float:left')
+                      div(style='float:left')  &nbsp
+                      .key_crnc_code_nm(style='float:left')= balance_info.key_crnc_code.toLowerCase()
+                    .col-xs.col-sm-2-4.col-md-2-4.eval_price
+                      .eval_amt(style='float:left')
+                      div(style='float:left')  &nbsp
+                      .crnc_code_nm(style='float:left')= balance_info.key_crnc_code.toLowerCase()
+      //- .row
+      //-   .col-md-6.col-sm-10.col-12
+      //-     table#tb_balances.table-responsive.table.table-hover
+      //-       tr
+      //-         th  거래소
+      //-         th  기축통화
+      //-         th  통화코드
+      //-         th  잔고
+      //-         th  현재가(기축통화)
+      //-         th  평가금액(기축통화)
+      //-       each balance_info in balance_infos
+      //-         tr
+      //-           td= balance_info.exchng_id
+      //-           td= balance_info.key_crnc_code
+      //-           td= balance_info.crnc_code
+      //-           td= balance_info.balance_amt
+      //-           td  준비중
+      //-           td  준비중
     else
       div 로그인 후 이용하실 수 있습니다.
 
@@ -72,18 +114,18 @@ block append scripts
 
     function set_balance_close_price(res_list){
 
-      $('#tb_balances').find("tr:has('td')").each(function (i, item) {
+      $('#tb_balances').find('.card-body .row').each(function (i, item) {
 
         let close_price = res_list[i].close_price;
-        let eval_amt = close_price*$(this).find('td').eq(3).html();
+        let eval_amt = close_price*$(this).find('.balance .balance_amt').html();
 
         if(res_list[i].key_crnc_code == 'KRW'){
-          $(this).find('td').eq(4).html(Number(close_price).toLocaleString('en'));
-          $(this).find('td').eq(5).html(Number(eval_amt.toFixed(0)).toLocaleString('en'));
+          $(this).find('.last_price .last_amt').html(Number(close_price).toLocaleString('en'));
+          $(this).find('.eval_price .eval_amt').html(Number(eval_amt.toFixed(0)).toLocaleString('en'));
         }
         else{
-          $(this).find('td').eq(4).html(close_price);
-          $(this).find('td').eq(5).html(eval_amt.toFixed(8));
+          $(this).find('.last_price .last_amt').html(close_price);
+          $(this).find('.eval_price .eval_amt').html(eval_amt.toFixed(6));
         }
       });
     };
@@ -109,13 +151,13 @@ block append scripts
 
       const req_list = new Array();
 
-      $('#tb_balances').find("tr:has('td')").each(function () {
+      $('#tb_balances').find('.card-body .row').each(function () {
 
         let req_info = {};
-
-         req_info['exchng_id']     = $(this).find('td').eq(0).text()
-         req_info['key_crnc_code'] = $(this).find('td').eq(1).text()
-         req_info['crnc_code']     = $(this).find('td').eq(2).text()
+          
+         req_info['exchng_id']     = $(this).find('.exchange .exchng_id').text()
+         req_info['key_crnc_code'] = $(this).find('.exchange .key_crnc_code').text()
+         req_info['crnc_code']     = $(this).find('.currency .crnc_code').text()
 
          req_list.push(req_info);
       });
@@ -129,7 +171,7 @@ block append scripts
       const _queryProfit = function(param){
   
         return new Promise(function(resolve, reject){
-  
+          
           $.ajax({
                 url:'/balance/profit',
                 type: 'POST',
