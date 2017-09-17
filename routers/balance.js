@@ -41,75 +41,75 @@ module.exports = function(io){
 
   route.post('/profit', function(req, res){
 
-    let db_sellSumAmt;
-    let db_buySumAmt;
+    // let db_sellSumAmt;
+    // let db_buySumAmt;
+    //
+    // const _querySumSellAmt = function(param){
+    //
+    //   return new Promise(function(resolve, reject){
+    //
+    //     const sql = `SELECT COALESCE(SUM(deal_amt), 0) sumSellAmt
+    //                    FROM trade_info
+    //                   WHERE user_id = ?
+    //                     AND key_crnc_code = 'BTC'
+    //                     AND deal_tp = '2'`;
+    //
+    //     conn.query(sql, [req.user.id], function(err, rows, fields){
+    //
+    //       console.log('매도금액:', rows);
+    //       db_sellSumAmt = rows[0].sumSellAmt;
+    //
+    //       if(err){
+    //         reject(err);
+    //       }
+    //       else{
+    //         resolve(db_sellSumAmt);
+    //       }
+    //     });
+    //   });
+    // };
+    //
+    // const _querySumBuyAmt = function(param){
+    //
+    //   return new Promise(function(resolve, reject){
+    //
+    //     const sql = `SELECT COALESCE(SUM(deal_amt), 0) sumBuyAmt
+    //                    FROM trade_info
+    //                   WHERE user_id = ?
+    //                     AND key_crnc_code = 'BTC'
+    //                     AND deal_tp = '1'`;
+    //
+    //     conn.query(sql, [req.user.id], function(err, rows, fields){
+    //
+    //       console.log('매수금액:', rows);
+    //       db_buySumAmt = rows[0].sumBuyAmt;
+    //
+    //       if(err){
+    //         reject(err)
+    //       }
+    //       else{
+    //         resolve();
+    //       }
+    //     });
+    //   });
+    // };
 
-    const _querySumSellAmt = function(param){
-
-      return new Promise(function(resolve, reject){
-
-        const sql = `SELECT COALESCE(SUM(deal_amt), 0) sumSellAmt
-                       FROM trade_info
-                      WHERE user_id = ?
-                        AND key_crnc_code = 'BTC'
-                        AND deal_tp = '2'`;
-
-        conn.query(sql, [req.user.id], function(err, rows, fields){
-
-          console.log('매도금액:', rows);
-          db_sellSumAmt = rows[0].sumSellAmt;
-
-          if(err){
-            reject(err);
-          }
-          else{
-            resolve(db_sellSumAmt);
-          }
-        });
-      });
-    };
-
-    const _querySumBuyAmt = function(param){
-
-      return new Promise(function(resolve, reject){
-
-        const sql = `SELECT COALESCE(SUM(deal_amt), 0) sumBuyAmt
-                       FROM trade_info
-                      WHERE user_id = ?
-                        AND key_crnc_code = 'BTC'
-                        AND deal_tp = '1'`;
-
-        conn.query(sql, [req.user.id], function(err, rows, fields){
-
-          console.log('매수금액:', rows);
-          db_buySumAmt = rows[0].sumBuyAmt;
-
-          if(err){
-            reject(err)
-          }
-          else{
-            resolve();
-          }
-        });
-      });
-    };
-
-    if(req.user)
+    if(!req.user)
     {
-      _querySumSellAmt().then(function(){
-        return _querySumBuyAmt();
-      })
-      .then(function(){
-        res.send({'sumSellAmt':db_sellSumAmt, 'sumBuyAmt':db_buySumAmt});
-      })
-      .catch(function(err){
-          console.log(err);
-          res.status(500).send('문제가 발생했습니다. 빠른 시일안에 해결하겠습니다.');
-      });
-    }
-    else {
       res.render('auth/login');
     }
+    else{
+
+      let inputData = req.body.inputData;
+      inputData['user'] = req.user;
+
+      const GetProfit = require('../services/ajax/' + inputData.svc_id + '.js');
+      const getProfit = new GetProfit(inputData);
+
+      getProfit.call(function(outputData){
+          res.send(outputData);
+      });
+    };
   });
 
   return route;

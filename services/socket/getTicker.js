@@ -9,7 +9,7 @@ GetTicker.prototype.call = function(req, callback){
   var request_tot_cnt = req.req_list.length;
   var request_proc_cnt = 0;
 
-  var CryptoCompareApi = require('../api/cryptocompare.js');
+  var CryptoCompareApi = require('../../api/cryptocompare.js');
   var cryptoCompareApi = new CryptoCompareApi();
 
   for(var i = 0; i < request_tot_cnt; i++){

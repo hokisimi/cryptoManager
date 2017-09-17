@@ -26,7 +26,7 @@ block content
               td 준비중
               
       .row.header(style='margin-top:1em')
-        .col-md-10.col-sm-12.col-10
+        .col-md-11.col-sm-12.col-10
           .card.w-100
             .card-body
               .row
@@ -44,7 +44,7 @@ block content
       div#tb_balances             
         each balance_info in balance_infos                     
           .row(style='margin-top : 1em')
-            .col-md-10.col-sm-12.col-10
+            .col-md-11.col-sm-12.col-10
               .card.w-100
                 .card-body
                   .row
@@ -55,7 +55,7 @@ block content
                       div(style='float:left')  &nbsp|&nbsp 
                       .exchng_id(style='float:left')= balance_info.exchng_id
                     .col-xs.col-sm-2-4.col-md-2-4.balance
-                      .balance_amt(style='float:left')= balance_info.balance_amt
+                      .balance_amt(style='float:left')= balance_info.balance_amt.toFixed(3)
                       div(style='float:left')  &nbsp
                       .crnc_code_nm(style='float:left')= balance_info.crnc_code.toLowerCase()
                     .col-xs.col-sm-2-4.col-md-2-4.last_price
@@ -66,47 +66,31 @@ block content
                       .eval_amt(style='float:left')
                       div(style='float:left')  &nbsp
                       .crnc_code_nm(style='float:left')= balance_info.key_crnc_code.toLowerCase()
-      //- .row
-      //-   .col-md-6.col-sm-10.col-12
-      //-     table#tb_balances.table-responsive.table.table-hover
-      //-       tr
-      //-         th  거래소
-      //-         th  기축통화
-      //-         th  통화코드
-      //-         th  잔고
-      //-         th  현재가(기축통화)
-      //-         th  평가금액(기축통화)
-      //-       each balance_info in balance_infos
-      //-         tr
-      //-           td= balance_info.exchng_id
-      //-           td= balance_info.key_crnc_code
-      //-           td= balance_info.crnc_code
-      //-           td= balance_info.balance_amt
-      //-           td  준비중
-      //-           td  준비중
     else
       div 로그인 후 이용하실 수 있습니다.
 
 block append scripts
   script(src='/socket.io/socket.io.js')
-  script(src='/balance/Ticker.js')
+  script(src='/remote_send/socketSend.js')
+  script(src='/remote_send/ajaxSend.js')
   script(type='text/javascript').
 
     $(function() {
 
-      var top2currency = new Ticker(io('/top2currency_ticker'));
+      var svc_top2curr = new SocketSend('getTicker', io('/top2currency_ticker'), 'Y', 10*1000);
       
       let req_list = [{'exchng_id':'Coinone', 'key_crnc_code':'KRW', 'crnc_code':'BTC'},
                       {'exchng_id':'Coinone', 'key_crnc_code':'KRW', 'crnc_code':'ETH'}]
                       
-      top2currency.setReqList(req_list);
-      top2currency.getTicker(function(res_list){
+      svc_top2curr.setReqList(req_list);
+      
+      svc_top2curr.call(function(res_list){
         set_top2currency_close_price(res_list);
       });
 
-      var balance = new Ticker(io('/balance_ticker'));
-      balance.setReqList(get_balance_req_list());
-      balance.getTicker(function(res_list){
+      var svc_balance = new SocketSend('getTicker', io('/balance_ticker'), 'Y', 10*1000);
+      svc_balance.setReqList(get_balance_req_list());
+      svc_balance.call(function(res_list){
         set_balance_close_price(res_list);
         get_profit();
       });
@@ -117,15 +101,16 @@ block append scripts
       $('#tb_balances').find('.card-body .row').each(function (i, item) {
 
         let close_price = res_list[i].close_price;
-        let eval_amt = close_price*$(this).find('.balance .balance_amt').html();
-
+        let balance_amt = $(this).find('.balance .balance_amt').html();
+        let eval_amt = close_price * balance_amt;
+  
         if(res_list[i].key_crnc_code == 'KRW'){
           $(this).find('.last_price .last_amt').html(Number(close_price).toLocaleString('en'));
           $(this).find('.eval_price .eval_amt').html(Number(eval_amt.toFixed(0)).toLocaleString('en'));
         }
         else{
-          $(this).find('.last_price .last_amt').html(close_price);
-          $(this).find('.eval_price .eval_amt').html(eval_amt.toFixed(6));
+          $(this).find('.last_price .last_amt').html(Number(close_price).toFixed(8));
+          $(this).find('.eval_price .eval_amt').html(eval_amt.toFixed(8));
         }
       });
     };
@@ -167,58 +152,42 @@ block append scripts
     
     function get_profit(){
       
-      /* Promise Job#1 ajax request */
-      const _queryProfit = function(param){
-  
-        return new Promise(function(resolve, reject){
-          
-          $.ajax({
-                url:'/balance/profit',
-                type: 'POST',
-          })
-          .done(function(data, textStatus, jqXHR) {
-            resolve(data);
-          })
-          .fail(function(jqXHR, textStatus, errorThrown){
-            reject(textStatus);
-          })
-          .always(function(data, textStatus, jqXHR){
-            
-          });
-        });
+      let data = {
+        inputData : { svc_id : 'getProfit'}
       };
       
-      _queryProfit().then(function(data){
+      const svc_profit = new AjaxSend('/balance/profit');
+      
+      svc_profit.setInputData(data);
+      
+      svc_profit.call(function(outputData){
         
         let bit_profit = 0;
         let eval_amt = 0;
         
-        $('#tb_balances').find("tr:has('td')").each(function (i, item) {
-  
+        $('#tb_profit').find("tr:has('td')").each(function (i, item) {
+      
           let key_crnc_code = $(this).find('td').eq(1).html();
-
+      
           if(key_crnc_code == 'BTC'){
             
             let  qry = $(this).find('td').eq(3).html();
             let  unit_prc = $(this).find('td').eq(4).html();
-
-            eval_amt = eval_amt + unit_prc*qry;
+      
+            eval_amt = eval_amt + unit_prc * qry;
+          }
+          
+          bit_profit = (eval_amt + outputData.sumSellAmt) - outputData.sumBuyAmt;
+          
+          $('#tb_profit').find("tr:eq(1)").find('td').eq(3).html(bit_profit.toFixed(4));
+          
+          if(bit_profit < 0)
+          {
+            $('#tb_profit').find("tr:eq(1)").find('td').eq(3).css("color", "red");
+          }
+          else{
+            $('#tb_profit').find("tr:eq(1)").find('td').eq(3).css("color", "blue");
           }
         });
-        
-        bit_profit = (eval_amt + data.sumSellAmt) - data.sumBuyAmt;
-        
-        $('#tb_profit').find("tr:eq(1)").find('td').eq(3).html(bit_profit.toFixed(4));
-        
-        if(bit_profit < 0)
-        {
-          $('#tb_profit').find("tr:eq(1)").find('td').eq(3).css("color", "red");
-        }
-        else{
-          $('#tb_profit').find("tr:eq(1)").find('td').eq(3).css("color", "blue");
-        }
-      })
-      .catch(function(err){
-          res.status(500).send('문제가 발생했습니다. 빠른 시일안에 해결하겠습니다.');
       });
     };
