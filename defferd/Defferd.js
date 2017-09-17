@@ -4,7 +4,6 @@ function Defferd(io){
 
 Defferd.prototype.on = function(channel){
 
-  let timer_id;
   const _channel = this.io.of(channel);
 
   /* ticker socket channel */
@@ -14,19 +13,19 @@ Defferd.prototype.on = function(channel){
 
       emitClient(clientSocket, req);
 
-      if(req.auto_resend)
+      if(req.auto_resend == 'Y')
       {
-        timer_id = setInterval(emitClient, req.interval, clientSocket, req);
-        console.log('timer start:' + timer_id);
+        clientSocket.timer_id = setInterval(emitClient, req.interval, clientSocket, req);
+        console.log('timer start:' + clientSocket.timer_id);
       }
     });
 
     clientSocket.on('disconnect', function(){
 
-      if(timer_id)
+      if(clientSocket.timer_id)
       {
-          console.log('timer clear:' + timer_id);
-          clearInterval(timer_id);
+          console.log('timer clear:' + clientSocket.timer_id);
+          clearInterval(clientSocket.timer_id);
       }
       console.log('socket disconnect!');
     });
@@ -35,7 +34,7 @@ Defferd.prototype.on = function(channel){
 
 function emitClient(clientSocket, req){
 
-  const GetTicker = require('../services/' + req.svc_id+ '.js');
+  const GetTicker = require('../services/socket/' + req.svc_id+ '.js');
 
   const getTicker = new GetTicker();
 

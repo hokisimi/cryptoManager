@@ -19,6 +19,7 @@ module.exports = function(){
   app.use(express.static('js'));
 
   app.use(bodyParser.urlencoded({ extended: false}));
+  app.use(bodyParser.json());
   app.use(session(
     {
       secret: config.get('session.secret_key'),
