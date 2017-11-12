@@ -12,13 +12,13 @@ app.use('', index);
 const auth = require('./routers/auth')(passport);
 app.use('/auth', auth);
 
-/* 수익률 라우터 */
+/* 거래내역 라우터 */
 const yield = require('./routers/yield')();
 app.use('/yield', yield);
 
 /* 잔고 라우터 */
-const balance = require('./routers/balance')(io);
-app.use('/balance', balance);
+const portfolio = require('./routers/portfolio')(io);
+app.use('/portfolio', portfolio);
 
 /* 서버가동 */
 httpServer.listen(config.get('port'), function(){
