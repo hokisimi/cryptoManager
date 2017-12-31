@@ -1,0 +1,256 @@
+extends ../layout
+block content
+  article.balance_area
+    if user
+      .row
+        .col-md-4.col-sm-5
+          table#tb_top2ticker.table-responsive.table
+            tr
+              th(style='text-align:center') Bitcoin
+              th(style='text-align:center') Etherium
+            tr
+              td(style='text-align:right') 준비중
+              td(style='text-align:right') 준비중
+      .row
+        .col-md-4.col-sm-3
+          table#tb_tot_profit.table-responsive.table
+            tr
+              th 총수익
+            tr
+              td(style='text-align:right') 준비중
+      .row
+        .col-md-6.col-sm-6.col-12
+          table#tb_profit.table-responsive.table
+            tr
+              th(style='text-align:center') 기축통화
+              th(style='text-align:center') 수익
+              th(style='text-align:center') 시세차익
+              th(style='text-align:center') 이익
+            tr
+              td(style='text-align:center') BTC
+              td(style='text-align:right') 준비중
+              td(style='text-align:right') 준비중  
+              td(style='text-align:right') 준비중 
+            tr
+              td(style='text-align:center') ETH
+              td(style='text-align:right') 준비중
+              td(style='text-align:right') 준비중  
+              td(style='text-align:right') 준비중
+              
+      .row.header(style='margin-top:1em')
+        .col-md-12.col-sm-12.col-12
+          .card.w-100
+            .card-body
+              .row
+                .col-xs.col-sm-2-4.col-md-2-4
+                  b 통화코드
+                .col-xs.col-sm-2-4.col-md-2-4
+                  b 거래소
+                .col-xs.col-sm-2-4.col-md-2-4
+                  b 기축통화
+                .col-xs.col-sm-2-4.col-md-2-4
+                  b 잔고
+                .col-xs.col-sm-2-4.col-md-2-4
+                  b 현재가
+                .col-xs.col-sm-2-4.col-md-2-4
+                  b 평가금액
+      
+      div#tb_balances             
+        each balance_info in balance_infos                     
+          .row(style='margin-top : 1em')
+            .col-md-12.col-sm-12.col-12
+              .card.w-100
+                .card-body
+                  .row
+                    .col-xs.col-sm-2-4.col-md-2-4.currency
+                      b.crnc_code= balance_info.crnc_code
+                    .col-xs.col-sm-2-4.col-md-2-4.exchange(style='color:grey;')
+                      .exchng_id(style='float:left')= balance_info.exchng_id
+                    .col-xs.col-sm-2-4.col-md-2-4.key_currency(style='color:grey;')
+                      .key_crnc_code(style='float:left')= balance_info.key_crnc_code
+                    .col-xs.col-sm-2-4.col-md-2-4.balance
+                      .balance_amt(style='float:left')= balance_info.balance_amt.toFixed(3)
+                      div(style='float:left')  &nbsp
+                      .crnc_code_nm(style='float:left')= balance_info.crnc_code.toLowerCase()
+                    .col-xs.col-sm-2-4.col-md-2-4.last_price
+                      .last_amt(style='float:left')
+                      div(style='float:left')  &nbsp
+                      .key_crnc_code_nm(style='float:left')= balance_info.key_crnc_code.toLowerCase()
+                    .col-xs.col-sm-2-4.col-md-2-4.eval_price
+                      .eval_amt(style='float:left')
+                      div(style='float:left')  &nbsp
+                      .crnc_code_nm(style='float:left')= balance_info.key_crnc_code.toLowerCase()
+    else
+      div 로그인 후 이용하실 수 있습니다.
+
+block append scripts
+  script(src='/socket.io/socket.io.js')
+  script(src='/remote_send/socketSend.js')
+  script(src='/remote_send/ajaxSend.js')
+  script(type='text/javascript').
+
+    $(function() {
+    
+      var svc_top2curr = new SocketSend('getTicker', io('/top2currency_ticker'), 'Y', 10*1000);
+      
+      let req_list = [{'exchng_id':'Coinone', 'key_crnc_code':'KRW', 'crnc_code':'BTC'},
+                      {'exchng_id':'Coinone', 'key_crnc_code':'KRW', 'crnc_code':'ETH'}]
+                      
+      svc_top2curr.setReqList(req_list);
+      
+      svc_top2curr.call(function(res_list){
+        set_top2currency_close_price(res_list);
+      });
+
+      var svc_balance = new SocketSend('getTicker', io('/balance_ticker'), 'Y', 10*1000);
+      svc_balance.setReqList(get_balance_req_list());
+      svc_balance.call(function(res_list){
+        set_balance_close_price(res_list);
+        get_profit();
+      });
+    });
+
+    function set_balance_close_price(res_list){
+
+      $('#tb_balances').find('.card-body .row').each(function (i, item) {
+
+        let close_price = res_list[i].close_price;
+        let balance_amt = $(this).find('.balance .balance_amt').html();
+        let eval_amt = close_price * balance_amt;
+  
+        if(res_list[i].key_crnc_code == 'KRW'){
+          $(this).find('.last_price .last_amt').html(Number(close_price).toLocaleString('en'));
+          $(this).find('.eval_price .eval_amt').html(Number(eval_amt.toFixed(0)).toLocaleString('en'));
+        }
+        else{
+          $(this).find('.last_price .last_amt').html(Number(close_price).toFixed(8));
+          $(this).find('.eval_price .eval_amt').html(eval_amt.toFixed(8));
+        }
+      });
+    };
+
+    function set_top2currency_close_price(res_list){
+
+      $('#tb_top2ticker').find("tr:has('td')").each(function (i, item) {
+
+        for(var j = 0, length = res_list.length; j < length; j++){
+          var close_price = res_list[j].close_price;
+
+          if(res_list[j].key_crnc_code == 'KRW'){
+            $(this).find('td').eq(j).html(Number(close_price).toLocaleString('en'));
+          }
+          else{
+            $(this).find('td').eq(j).html(close_price);
+          }
+        }
+      });
+    };
+
+    function get_balance_req_list(){
+
+      const req_list = new Array();
+
+      $('#tb_balances').find('.card-body .row').each(function () {
+
+        let req_info = {};
+          
+         req_info['exchng_id']     = $(this).find('.exchange .exchng_id').text()
+         req_info['key_crnc_code'] = $(this).find('.key_currency .key_crnc_code').text()
+         req_info['crnc_code']     = $(this).find('.currency .crnc_code').text()
+
+         req_list.push(req_info);
+      });
+
+      return req_list;
+    };
+    
+    function get_profit(){
+      
+      let data = {
+        inputData : { svc_id : 'getProfit'}
+      };
+      
+      const svc_profit = new AjaxSend('/portfolio/profit');
+      
+      svc_profit.setInputData(data);
+      
+      svc_profit.call(function(outputData){
+      
+        let btc_profit = 0;
+        let krw_btc_profit = 0;
+        let krw_eth_profit = 0;
+        let btc_eval_amt = 0;
+        let eth_profit = 0;
+        let eth_eval_amt = 0;
+        
+        $('#tb_balances').find('.card-body .row').each(function (i, item) {
+      
+          let key_crnc_code = $(this).find('.key_currency .key_crnc_code').html();
+      
+          if(key_crnc_code == 'BTC'){
+            
+            let qry = $(this).find('.balance .balance_amt').html();
+            let unit_prc = $(this).find('.last_price .last_amt').html();
+            let btc_close_amt = 0;
+      
+            btc_eval_amt = btc_eval_amt + unit_prc * qry;
+            
+            btc_profit = (btc_eval_amt + outputData.btc_sumSellAmt) - outputData.btc_sumBuyAmt;
+            
+            btc_close_amt = $('#tb_top2ticker').find("tr:has('td')>td").eq(0).html().replace(/[^\d]+/g, '');
+            krw_btc_profit = btc_profit * btc_close_amt;
+
+            $('#tb_profit').find("tr:eq(1)").find('td').eq(3).html(btc_profit.toFixed(4));
+            $('#tb_profit').find("tr:eq(1)").find('td').eq(1).html(Number(krw_btc_profit.toFixed(0)).toLocaleString('en'));
+      
+            if(btc_profit < 0)
+            {
+              $('#tb_profit').find("tr:eq(1)").find('td').eq(3).css("color", "red");
+            }
+            else{
+              $('#tb_profit').find("tr:eq(1)").find('td').eq(3).css("color", "blue");
+            }
+            
+            if(krw_btc_profit < 0)
+            {
+              $('#tb_profit').find("tr:eq(1)").find('td').eq(1).css("color", "red");
+            }
+            else{
+              $('#tb_profit').find("tr:eq(1)").find('td').eq(1).css("color", "blue");
+            }
+          }
+          else if(key_crnc_code == 'ETH'){
+            
+            let qry = $(this).find('.balance .balance_amt').html();
+            let unit_prc = $(this).find('.last_price .last_amt').html();
+            let eth_close_amt = 0;
+      
+            eth_eval_amt = eth_eval_amt + unit_prc * qry;
+            
+            eth_profit = (eth_eval_amt + outputData.eth_sumSellAmt) - outputData.eth_sumBuyAmt;
+            
+            eth_close_amt = $('#tb_top2ticker').find("tr:has('td')>td").eq(1).html().replace(/[^\d]+/g, '');
+            krw_eth_profit = eth_profit * eth_close_amt;
+
+            $('#tb_profit').find("tr:eq(2)").find('td').eq(3).html(eth_profit.toFixed(4));
+            $('#tb_profit').find("tr:eq(2)").find('td').eq(1).html(Number(krw_eth_profit.toFixed(0)).toLocaleString('en'));
+
+            if(eth_profit < 0)
+            {
+              $('#tb_profit').find("tr:eq(2)").find('td').eq(3).css("color", "red");
+            }
+            else{
+              $('#tb_profit').find("tr:eq(2)").find('td').eq(3).css("color", "blue");
+            }
+            
+            if(krw_eth_profit < 0)
+            {
+              $('#tb_profit').find("tr:eq(2)").find('td').eq(1).css("color", "red");
+            }
+            else{
+              $('#tb_profit').find("tr:eq(2)").find('td').eq(1).css("color", "blue");
+            }
+          }
+        });
+      });
+    };
