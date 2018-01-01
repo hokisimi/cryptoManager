@@ -17,7 +17,8 @@ module.exports = function(io){
                         , crnc_code
                         , balance_amt
                      FROM balance
-                    WHERE user_id = ?`;
+                    WHERE user_id = ?
+                      AND balance_amt > 0`;
 
       conn.query(sql, [req.user.id], function(err, rows, fields){
 

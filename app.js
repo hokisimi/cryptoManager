@@ -16,7 +16,7 @@ app.use('/auth', auth);
 const yield = require('./routers/yield')();
 app.use('/yield', yield);
 
-/* 잔고 라우터 */
+/* 폴트폴리오 라우터 */
 const portfolio = require('./routers/portfolio')(io);
 app.use('/portfolio', portfolio);
 

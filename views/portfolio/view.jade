@@ -3,6 +3,10 @@ block content
   article.balance_area
     if user
       .row
+        select#ex-select
+          option(value='1') Bithumb
+          option(value='2') Coinone
+      .row
         .col-md-4.col-sm-5
           table#tb_top2ticker.table-responsive.table
             tr
@@ -28,14 +32,14 @@ block content
               th(style='text-align:center') 이익
             tr
               td(style='text-align:center') BTC
-              td(style='text-align:right') 준비중
+              td(style='text-align:right') 0
               td(style='text-align:right') 준비중  
-              td(style='text-align:right') 준비중 
+              td(style='text-align:right') 0 
             tr
               td(style='text-align:center') ETH
+              td(style='text-align:right') 0
               td(style='text-align:right') 준비중
-              td(style='text-align:right') 준비중  
-              td(style='text-align:right') 준비중
+              td(style='text-align:right') 0
               
       .row.header(style='margin-top:1em')
         .col-md-12.col-sm-12.col-12
@@ -89,12 +93,17 @@ block append scripts
   script(src='/remote_send/ajaxSend.js')
   script(type='text/javascript').
 
+    var svc_top2curr;
+    var svc_top2curr;
+
     $(function() {
-    
-      var svc_top2curr = new SocketSend('getTicker', io('/top2currency_ticker'), 'Y', 10*1000);
       
-      let req_list = [{'exchng_id':'Coinone', 'key_crnc_code':'KRW', 'crnc_code':'BTC'},
-                      {'exchng_id':'Coinone', 'key_crnc_code':'KRW', 'crnc_code':'ETH'}]
+      svc_top2curr = new SocketSend('getTicker', io('/top2currency_ticker'), 'Y', 10*1000);
+  
+      let exchng_id = $("#ex-select option:selected").text();
+      
+      let req_list = [{'exchng_id':exchng_id, 'key_crnc_code':'KRW', 'crnc_code':'BTC'},
+                      {'exchng_id':exchng_id, 'key_crnc_code':'KRW', 'crnc_code':'ETH'}]
                       
       svc_top2curr.setReqList(req_list);
       
@@ -102,11 +111,24 @@ block append scripts
         set_top2currency_close_price(res_list);
       });
 
-      var svc_balance = new SocketSend('getTicker', io('/balance_ticker'), 'Y', 10*1000);
+      svc_balance = new SocketSend('getTicker', io('/balance_ticker'), 'Y', 10*1000);
       svc_balance.setReqList(get_balance_req_list());
       svc_balance.call(function(res_list){
         set_balance_close_price(res_list);
         get_profit();
+      });
+      
+      $("#ex-select").change(function(){
+        let exchng_id = $(this).children("option:selected").text();
+        
+        req_list.forEach(function (item, index, array) {
+          array[index].exchng_id = exchng_id;
+        });
+    
+        svc_top2curr.setReqList(req_list);            
+        svc_top2curr.call(function(res_list){
+          set_top2currency_close_price(res_list);
+        });
       });
     });
 

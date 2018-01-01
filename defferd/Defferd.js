@@ -11,6 +11,12 @@ Defferd.prototype.on = function(channel){
 
     clientSocket.on('services', function(req){
 
+      if(clientSocket.timer_id)
+      {
+          console.log('timer clear:' + clientSocket.timer_id);
+          clearInterval(clientSocket.timer_id);
+      }
+
       emitClient(clientSocket, req);
 
       if(req.auto_resend == 'Y')
@@ -28,6 +34,19 @@ Defferd.prototype.on = function(channel){
           clearInterval(clientSocket.timer_id);
       }
       console.log('socket disconnect!');
+    });
+
+    clientSocket.on('recall', function(){
+
+      if(clientSocket.timer_id)
+      {
+          console.log('timer clear:' + clientSocket.timer_id);
+          clearInterval(clientSocket.timer_id);
+      }
+      console.log('socket recall!');
+
+      clientSocket.emit('recallSuccess', 'Success');
+
     });
   });
 }
