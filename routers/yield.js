@@ -66,10 +66,10 @@ module.exports = function(){
     let in_deal_tp        = req.body.deal_tp;
     let in_crnc_code      = req.body.crnc_code;
     let in_key_crnc_code  = req.body.key_crnc_code;
-    let in_qry            = req.body.qry;
-    let in_unit_prc       = req.body.unit_prc;
-    let in_deal_amt       = req.body.deal_amt;
-    let in_cmsn_amt       = req.body.cmsn_amt;
+    let in_qry            = Number(req.body.qry);
+    let in_unit_prc       = Number(req.body.unit_prc);
+    let in_deal_amt       = Number(req.body.deal_amt);
+    let in_cmsn_amt       = Number(req.body.cmsn_amt);
 
     const _makeSeq = function(param){
 
@@ -156,16 +156,40 @@ module.exports = function(){
       });
     };
 
+    const _qryKeyCrncCodeBalanceInfo = function(){
+
+      return new Promise(function(resolve, reject){
+
+        const sql = `SELECT *
+                      FROM balance
+                     WHERE exchng_id = ?
+                       AND crnc_code = ?
+                       AND user_id   = ?`;
+
+        conn.query(sql, [in_exchng_id, in_key_crnc_code, in_id], function(err, rows, fields){
+
+          if(err){
+            console.log(err);
+            reject(err);
+          }
+          else{
+            const balance_info = rows[0];
+            resolve(balance_info);
+          }
+        });
+      });
+    };
+
     const _insertOrUdateBalanceInfo = function(balance_info){
 
       return new Promise(function(resolve, reject){
 
-        if(balance_info){
+        if(in_deal_tp == '2')
+        {
+          in_qry = (-1)*in_qry;
+        }
 
-          if(in_deal_tp == '2')
-          {
-            in_qry = (-1)*in_qry;
-          }
+        if(balance_info){
 
           const sql = `UPDATE balance
                          SET balance_amt = balance_amt + ?
@@ -207,6 +231,68 @@ module.exports = function(){
       });
     };
 
+    const _insertOrUdateKeyCrncCodeBalanceInfo = function(balance_info){
+
+      return new Promise(function(resolve, reject){
+
+        let deal_amt;
+
+        if(in_deal_tp == '1'){
+
+          deal_amt = (-1)* (in_deal_amt + in_cmsn_amt);
+        }
+        else {
+          deal_amt = in_deal_amt + in_cmsn_amt;
+        }
+
+        if(balance_info){
+
+          const sql = `UPDATE balance
+                         SET balance_amt = balance_amt + ?
+                       WHERE exchng_id = ?
+                         AND crnc_code = ?
+                         AND user_id   = ?`;
+
+          conn.query(sql, [deal_amt, in_exchng_id, in_key_crnc_code, in_id], function(err, rows, fields){
+
+            if(err){
+              console.log(err);
+              reject(err);
+            }
+            else{
+              resolve();
+            }
+          });
+        }
+        else {
+
+          if(in_key_crnc_code != 'KRW'){
+            const sql = `INSERT INTO balance(
+                         exchng_id,
+                         key_crnc_code,
+                         crnc_code,
+                         user_id,
+                         balance_amt)
+                        VALUES(?, ?, ?, ?, ?)`;
+
+            conn.query(sql, [in_exchng_id, 'KRW', in_key_crnc_code, in_id, deal_amt], function(err, rows, fields){
+
+              if(err){
+                console.log(err);
+                reject(err);
+              }
+              else{
+                resolve();
+              }
+            });
+          }
+          else{
+            resolve();
+          }
+        }
+      });
+    }
+
     if(req.user)
     {
       _makeSeq().then(function(){
@@ -218,6 +304,12 @@ module.exports = function(){
       })
       .then(function(balance_info){
         return _insertOrUdateBalanceInfo(balance_info);
+      })
+      .then(function(){
+        return _qryKeyCrncCodeBalanceInfo();
+      })
+      .then(function(balance_info){
+        return _insertOrUdateKeyCrncCodeBalanceInfo(balance_info);
       })
       .then(function(){
         res.redirect('/')
